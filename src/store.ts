@@ -249,7 +249,18 @@ const useEvent = create<StateWithActions>(
                 const control = Event.addControl(draft, options);
                 if (courseId && courseId !== Event.ALL_CONTROLS_ID) {
                   const draftCourse = findCourse(draft, courseId);
-                  if (beforeId == null) {
+
+                  const hasFinishControl = draftCourse.controls.some(
+                    (control) => control.kind === "finish"
+                  );
+                  const penultimate = draftCourse.controls.length - 1;
+
+                  if (control.kind === "start") {
+                    draftCourse.controls.unshift(Control.clone(control));
+                  } else if (hasFinishControl) {
+                    draftCourse.controls.splice(penultimate, 0, Control.clone(control));
+                  } 
+                  else if (beforeId == null) {
                     draftCourse.controls.push(Control.clone(control));
                   } else {
                     const beforeIndex = draftCourse.controls.findIndex(
