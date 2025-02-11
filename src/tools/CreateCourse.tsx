@@ -95,7 +95,10 @@ export default function CreateCourse(): JSX.Element {
 
   const style = useCallback(
     (_, resolution) => {
-      const numberControls = controlsSource?.getFeatures().length || 0;
+
+      const hasStartControl = controlsSource?.getFeatures().some(
+        (feature) => feature.get("kind") === "start"
+      );
 
       if (activeModeRef.current === "Finish") {
         finishStyle.forEach((style, i) => {
@@ -106,7 +109,7 @@ export default function CreateCourse(): JSX.Element {
           image.setRadius(dimension(2 + i));
         });
         return finishStyle;
-      } else if (numberControls === 0) {
+      } else if (!hasStartControl) {
         const startStyle = getStartStyle(courseOverPrintRgb);
         const image = startStyle.getImage();
         image.setScale(dimension(0.05));
@@ -143,24 +146,30 @@ export default function CreateCourse(): JSX.Element {
         if (highlightFeatureRef.current) {
           const controlId = highlightFeatureRef.current.get("id");
           const control = controls[controlId];
-          addControl({ ...control }, selectedCourseId);
+          addControl({ ...control }, selectedCourseId);W
         } else {
-          const numberControls = controlsSource.getFeatures().length;
 
           const hasFinishControl = controlsSource.getFeatures().some(
             (feature) => feature.get("kind") === "finish"
           );
+
+          const hasStartControl = controlsSource.getFeatures().some(
+            (feature) => feature.get("kind") === "start"
+          );
           
-          if (hasFinishControl) {
-            return;
-          }
           
           const kind =
             activeModeRef.current === "Finish"
               ? "finish"
-              : numberControls > 0
-              ? "normal"
-              : "start";
+              : !hasStartControl
+              ? "start"
+              : "normal";
+
+           if (hasFinishControl && kind=="finish") {
+
+            return;
+          } 
+
           addControl(
             {
               kind,
@@ -210,12 +219,15 @@ export default function CreateCourse(): JSX.Element {
         const [feature] = features;
 
         const controlKind = feature.get("kind");
-
-        const numberControls = controlsSource?.getFeatures().length || 0;
       
         let expectedKind: "start" | "normal" | "finish";
 
-        if (numberControls === 0) {
+        const hasStartControl = controlsSource?.getFeatures().some(
+          (feature) => feature.get("kind") === "start"
+        );
+
+
+        if (!hasStartControl) {
           expectedKind = "start";
         } else if (activeModeRef.current === "Finish") {
           expectedKind = "finish";
