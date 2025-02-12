@@ -146,7 +146,7 @@ export default function CreateCourse(): JSX.Element {
         if (highlightFeatureRef.current) {
           const controlId = highlightFeatureRef.current.get("id");
           const control = controls[controlId];
-          addControl({ ...control }, selectedCourseId);W
+          addControl({ ...control }, selectedCourseId);
         } else {
 
           const hasFinishControl = controlsSource.getFeatures().some(
