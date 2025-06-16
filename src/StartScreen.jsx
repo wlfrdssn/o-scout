@@ -4,7 +4,7 @@ import { readMap } from "./services/map";
 import useEvent, { useMap, useNotifications } from "./store";
 import Button from "./ui/Button";
 import Spinner from "./ui/Spinner";
-import OcadTiler from "ocad-tiler";
+import OcadTiler from "./services/ocad-tiler";
 
 export default function StartScreen() {
   const [state, setState] = useState("idle");
@@ -79,7 +79,11 @@ export default function StartScreen() {
       const blob = await response.blob();
       const mapFile = await readMap(blob);
       const mapFilename = "Demo Map";
-      setMap(mapFilename, mapFile, new OcadTiler(mapFile), blob);
+      const tiler = new OcadTiler(mapFile, {
+      minSym: 1,
+      maxSym: 200000
+      });
+setMap(mapFilename, mapFile, tiler, blob);
     } catch (e) {
       console.error(e);
       setState("error");

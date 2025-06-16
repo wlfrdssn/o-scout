@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import Spinner from "./ui/Spinner";
 import Button from "./ui/Button";
-import OcadTiler from "ocad-tiler";
+import OcadTiler from "./services/ocad-tiler";
 
 import { useMap, useNotifications } from "./store";
 import { readMap } from "./services/map";
@@ -49,7 +49,11 @@ export default function SelectMap({
     try {
       const [blob] = e.target.files;
       const map = await readMap(blob);
-      setMap(blob.name, map, new OcadTiler(map), blob);
+      const tiler = new OcadTiler(mapFile, {
+      minSym: 1,
+      maxSym: 200000
+      });
+      setMap(mapFilename, mapFile, tiler, blob);
       onMapLoaded && onMapLoaded(map, blob.name);
       setState("idle");
     } catch (e) {
