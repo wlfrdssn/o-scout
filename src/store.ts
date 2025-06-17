@@ -50,6 +50,10 @@ export interface MapState {
     projectedToPaper: (c: Coordinate) => Coordinate;
   };
   tileWorker?: TileWorker;
+  tiler?: OcadTiler;
+  updateTiler: (symbols: number[]) => void
+  selectedSymnums: number[];
+  setSelectedSymnums: (syms: number[]) => void;
   setMapFile: (
     mapFilename: string,
     mapFile: OcadFile,
@@ -62,12 +66,15 @@ export interface MapState {
   setControlsSource: (controlSource: VectorSource) => void;
 }
 
-export const useMap = create<MapState>((set) => ({
+export const useMap = create<MapState>((set, get) => ({
   mapFile: undefined,
-  mapInstance: undefined,
+  map: undefined,
   clipGeometry: undefined,
   clipLayer: undefined,
   projections: undefined,
+  tiler: undefined,
+  selectedSymnums: [],
+  setSelectedSymnums: (syms: number[]) => set({ selectedSymnums: syms }),
   setMapFile: async (mapFilename, mapFile, tiler, mapFileBlob) =>
     await new Promise((resolve, reject) => {
       const tileWorker = new TileWorker();
@@ -93,6 +100,26 @@ export const useMap = create<MapState>((set) => ({
       };
       tileWorker.postMessage({ type: "SET_MAP_FILE", blob: mapFileBlob });
     }),
+  updateTiler: (symbols: number[]) => {
+    // 1) Skapa ny OcadTiler-instans med includeSymbols
+    set((state) => {
+      if (!state.mapFile) return state
+      const newTiler = new OcadTiler(state.mapFile, { includeSymbols: symbols })
+      return { ...state, tiler: newTiler }
+    })
+
+    // 2) Berätta för worker att byta filter
+    const worker = get().tileWorker
+    if (worker) {
+      worker.postMessage({
+        type: 'SET_TILER',
+        options: { includeSymbols: symbols }
+      })
+    } else {
+      console.warn('Ingen tileWorker, ingen filtrering utförs')
+    }
+  },
+
   setMapInstance: (map) =>
     set((state) => {
       const crs = state.mapFile?.getCrs();

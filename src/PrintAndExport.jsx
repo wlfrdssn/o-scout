@@ -10,6 +10,7 @@ import * as Course from "./models/course";
 import { transformExtent } from "./services/coordinates";
 import { writeIofXml } from "./services/iof-xml";
 import proj4 from "proj4";
+import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/outline";
 
 export default function PrintAndExport() {
   const [state, setState] = useState("idle");
@@ -77,6 +78,9 @@ export default function PrintAndExport() {
           </label>
         ))}
       </div>
+
+     
+
       <div className="flex justify-end mt-4">
         <Button onClick={onPrint}>
           {state === "printing" && <Spinner className="text-indigo-600" />}
@@ -217,3 +221,4 @@ function getMap({ mapFile, tiler }) {
 function getPush({ push }) {
   return push;
 }
+
