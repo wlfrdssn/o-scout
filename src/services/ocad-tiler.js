@@ -48,25 +48,18 @@ export default class OcadTiler {
   
 
 renderSvg(extent, resolution, options = {}) {
-  // Sätt mergedOptions: anropsvärden har företräde, men fallback till this.options
   const mergedOptions = {
     includeSymbols: this.options.includeSymbols,
     minSym: this.options.minSym,
     maxSym: this.options.maxSym,
-    // ev. andra defaultfält som du vill ärva
     ...options,
   };
 
-  console.log('🔍 renderSvg anropad med mergedOptions:', mergedOptions);
-  // ... använd mergedOptions i filtreringen:
   let objects = this.getObjects(extent, (mergedOptions.buffer || 256) * resolution);
 
-  // Filtrera på includeSymbols om det finns en icke-tom array
   if (Array.isArray(mergedOptions.includeSymbols) && mergedOptions.includeSymbols.length > 0) {
-    console.log('🔍 Filtrerar med includeSymbols:', mergedOptions.includeSymbols);
     const includeSet = new Set(
       mergedOptions.includeSymbols.map(v => {
-        // konvertera sträng till number om nödvändigt
         if (typeof v === 'string' && /^\d+$/.test(v)) return Number(v);
         return v;
       })
@@ -74,41 +67,27 @@ renderSvg(extent, resolution, options = {}) {
     objects = objects.filter(o => {
       const symNum = typeof o.sym === 'string' ? Number(o.sym) : o.sym;
       const match = includeSet.has(symNum);
-      console.log(`   ▶️ include filter testar sym=${symNum}, keep?`, match);
       return match;
     });
-    console.log('🔍 Efter includeSymbols-filter, objects.length =', objects.length);
   } else {
-    console.log('🔍 Ingen includeSymbols-filtrering (array saknas eller tom).');
   }
 
-  // Range-filtrering om satt
   const hasMin = mergedOptions.minSym != null && !isNaN(Number(mergedOptions.minSym));
   const hasMax = mergedOptions.maxSym != null && !isNaN(Number(mergedOptions.maxSym));
-  console.log('🔍 minSym/maxSym:', mergedOptions.minSym, mergedOptions.maxSym, 'hasMin/hasMax:', hasMin, hasMax);
   if (hasMin || hasMax) {
     const min = hasMin ? Number(mergedOptions.minSym) : -Infinity;
     const max = hasMax ? Number(mergedOptions.maxSym) : Infinity;
     objects = objects.filter(o => {
       const symNum = typeof o.sym === 'string' ? Number(o.sym) : o.sym;
       const keep = symNum >= min && symNum <= max;
-      console.log(`   ▶️ range filter testar sym=${symNum}, keep?`, keep);
       return keep;
     });
-    console.log('🔍 Efter range-filter, objects.length =', objects.length);
   } else {
-    console.log('🔍 Ingen range-filtrering.');
   }
 
-  // Kontrollera slutligt kvarvarande syms:
-  console.log('🔍 Kvar efter filtrering, exempel sym:', objects.slice(0,10).map(o=>o.sym));
-
-  // Anropa ocadToSvg med filtered objects
   const document = (mergedOptions.DOMImplementation || defaultDOMImplementation)
     .createDocument(null, 'xml', null);
-  console.log('🔍 Anropar ocadToSvg med objektnummer:', objects.length);
   const svg = ocadToSvg(this.ocadFile, { objects, document });
-    // Resten av koden är oförändrad:
     const mapGroup = svg.getElementsByTagName('g')[0];
     const crs = this.ocadFile.getCrs();
     extent = projectedExtentToMapCoords(extent, crs);

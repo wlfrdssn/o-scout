@@ -38,7 +38,11 @@ export default function StartScreen() {
             </p>
             {event.mapFilename ? (
               <p className="p-3 border border-indigo-600 rounded">
-                You have courses saved from a previous session using the map
+                You have courses saved for
+                <br />
+                <strong>{event.name}</strong>
+                <br />
+                from a previous session using the map
                 <br />
                 <strong>{event.mapFilename}</strong>
                 <br />
@@ -79,8 +83,7 @@ export default function StartScreen() {
       const blob = await response.blob();
       const mapFile = await readMap(blob);
       const mapFilename = "Demo Map";
-      const tiler = new OcadTiler(mapFile);
-      setMap(mapFilename, mapFile, tiler, blob);
+      setMap(mapFilename, mapFile, new OcadTiler(mapFile), blob);
     } catch (e) {
       console.error(e);
       setState("error");
